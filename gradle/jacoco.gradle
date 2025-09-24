@@ -1,0 +1,59 @@
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = '0.8.11'
+}
+
+tasks.named('test') {
+    finalizedBy('jacocoTestReport')
+}
+
+tasks.named('jacocoTestReport', JacocoReport) {
+    dependsOn('test')
+
+    // отчёты
+    reports {
+        xml.required = true
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/coverage')
+    }
+
+    // где брать .exec
+    executionData.from(fileTree(layout.buildDirectory).include('jacoco/*.exec'))
+
+    // ВАЖНО: задаём classDirectories ОДИН РАЗ, на основе main classes, сразу с exclude
+    def excludes = project.ext.has('filesExcludedFromCoverage') ? filesExcludedFromCoverage : []
+    classDirectories.setFrom(
+            files(sourceSets.main.output.classesDirs).asFileTree.matching {
+                exclude excludes
+            }
+    )
+}
+
+tasks.named('jacocoTestCoverageVerification', JacocoCoverageVerification) {
+    dependsOn('test')
+    executionData.from(fileTree(layout.buildDirectory).include('jacoco/*.exec'))
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                value   = 'COVEREDRATIO'
+                minimum = minimumCoverageOverall
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = filesExcludedFromCoverage
+            limit {
+                counter = 'LINE'
+                value   = 'COVEREDRATIO'
+                minimum = minimumCoveragePerFile
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn('jacocoTestCoverageVerification')
+}

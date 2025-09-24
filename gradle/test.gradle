@@ -1,0 +1,15 @@
+ext {
+    filesExcludedFromCoverage = [
+            '**/*Application*',
+            '**/config/**',
+            '**/dto/**',
+            '**/mapper/**',
+            '**/exception/**'
+    ]
+    minimumCoverageOverall = 0.60
+    minimumCoveragePerFile = 0.40
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
