@@ -11,17 +11,14 @@ tasks.named('test') {
 tasks.named('jacocoTestReport', JacocoReport) {
     dependsOn('test')
 
-    // отчёты
     reports {
         xml.required = true
         html.required = true
         html.outputLocation = layout.buildDirectory.dir('reports/coverage')
     }
 
-    // где брать .exec
     executionData.from(fileTree(layout.buildDirectory).include('jacoco/*.exec'))
 
-    // ВАЖНО: задаём classDirectories ОДИН РАЗ, на основе main classes, сразу с exclude
     def excludes = project.ext.has('filesExcludedFromCoverage') ? filesExcludedFromCoverage : []
     classDirectories.setFrom(
             files(sourceSets.main.output.classesDirs).asFileTree.matching {
